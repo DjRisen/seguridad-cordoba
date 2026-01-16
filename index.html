@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguridad Córdoba - Monitoreo de Robos</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <!-- Contenedor principal -->
+    <div class="container">
+        <!-- Barra de navegación -->
+        <nav class="navbar">
+            <div class="nav-brand">
+                <i class="fas fa-shield-alt"></i>
+                <h1>Seguridad Córdoba</h1>
+            </div>
+            <div class="nav-controls">
+                <button id="notificationBtn" class="btn-icon">
+                    <i class="fas fa-bell"></i>
+                    <span id="notificationCount" class="badge">0</span>
+                </button>
+                <button id="menuBtn" class="btn-icon">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Menú lateral -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Menú Principal</h2>
+                <button id="closeMenuBtn" class="btn-icon">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="#" class="active" data-section="map"><i class="fas fa-map"></i> Mapa en Vivo</a></li>
+                <li><a href="#" data-section="notices"><i class="fas fa-newspaper"></i> Noticias</a></li>
+                <li><a href="#" data-section="agenda"><i class="fas fa-calendar-alt"></i> Agenda de Visitas</a></li>
+                <li><a href="#" data-section="notes"><i class="fas fa-sticky-note"></i> Bloc de Notas</a></li>
+                <li><a href="#" data-section="visited"><i class="fas fa-check-circle"></i> Control de Visitas</a></li>
+                <li><a href="#" data-section="settings"><i class="fas fa-cog"></i> Configuración</a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <i class="fas fa-user"></i>
+                    <span>Usuario Local</span>
+                </div>
+                <button id="refreshBtn" class="btn-primary">
+                    <i class="fas fa-sync-alt"></i> Actualizar Datos
+                </button>
+            </div>
+        </aside>
+
+        <!-- Contenido principal -->
+        <main class="main-content">
+            <!-- Sección del Mapa -->
+            <section id="map-section" class="content-section active">
+                <div class="section-header">
+                    <h2><i class="fas fa-map-marker-alt"></i> Mapa en Tiempo Real</h2>
+                    <div class="map-controls">
+                        <button id="centerMapBtn" class="btn-small">
+                            <i class="fas fa-crosshairs"></i> Mi Ubicación
+                        </button>
+                        <button id="filterBtn" class="btn-small">
+                            <i class="fas fa-filter"></i> Filtros
+                        </button>
+                    </div>
+                </div>
+                <div id="map"></div>
+                <div class="map-stats">
+                    <div class="stat">
+                        <span class="stat-label">Alertas Hoy:</span>
+                        <span id="todayAlerts" class="stat-value">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">En Progreso:</span>
+                        <span id="activeAlerts" class="stat-value">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Visitados:</span>
+                        <span id="visitedStats" class="stat-value">0</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección de Noticias -->
+            <section id="notices-section" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-newspaper"></i> Noticias de Alertas</h2>
+                </div>
+                <div id="news-container" class="news-container">
+                    <!-- Las noticias se cargarán aquí dinámicamente -->
+                </div>
+            </section>
+
+            <!-- Sección de Agenda -->
+            <section id="agenda-section" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-calendar-alt"></i> Agenda de Visitas</h2>
+                    <button id="addVisitBtn" class="btn-primary">
+                        <i class="fas fa-plus"></i> Nueva Visita
+                    </button>
+                </div>
+                <div class="agenda-container">
+                    <div class="agenda-controls">
+                        <input type="text" id="searchVisits" placeholder="Buscar en agenda...">
+                        <select id="filterVisits">
+                            <option value="all">Todas las visitas</option>
+                            <option value="pending">Pendientes</option>
+                            <option value="completed">Completadas</option>
+                        </select>
+                    </div>
+                    <div id="visits-list" class="visits-list">
+                        <!-- Las visitas se cargarán aquí dinámicamente -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección de Notas -->
+            <section id="notes-section" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-sticky-note"></i> Bloc de Notas</h2>
+                    <button id="addNoteBtn" class="btn-primary">
+                        <i class="fas fa-plus"></i> Nueva Nota
+                    </button>
+                </div>
+                <div class="notes-container">
+                    <div class="notes-list" id="notesList">
+                        <!-- Las notas se cargarán aquí dinámicamente -->
+                    </div>
+                    <div class="note-editor" id="noteEditor">
+                        <textarea id="noteContent" placeholder="Escribe tu nota aquí..."></textarea>
+                        <div class="note-actions">
+                            <button id="saveNoteBtn" class="btn-primary">Guardar Nota</button>
+                            <button id="clearNoteBtn" class="btn-secondary">Limpiar</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección de Control de Visitas -->
+            <section id="visited-section" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-check-circle"></i> Control de Visitas</h2>
+                </div>
+                <div class="visited-controls">
+                    <div class="search-box">
+                        <input type="text" id="searchAlerts" placeholder="Buscar alertas...">
+                        <select id="statusFilter">
+                            <option value="all">Todos los estados</option>
+                            <option value="pending">Pendientes</option>
+                            <option value="visited">Visitados</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="alerts-list" class="alerts-list">
+                    <!-- Las alertas se cargarán aquí dinámicamente -->
+                </div>
+            </section>
+
+            <!-- Sección de Configuración -->
+            <section id="settings-section" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-cog"></i> Configuración</h2>
+                </div>
+                <div class="settings-container">
+                    <div class="setting-group">
+                        <h3>Notificaciones</h3>
+                        <div class="setting-item">
+                            <label>
+                                <input type="checkbox" id="enableNotifications" checked>
+                                Activar notificaciones
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label>
+                                <input type="checkbox" id="enableSound" checked>
+                                Sonido de alerta
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label>Frecuencia de actualización:</label>
+                            <select id="updateFrequency">
+                                <option value="5">5 minutos</option>
+                                <option value="10" selected>10 minutos</option>
+                                <option value="15">15 minutos</option>
+                                <option value="30">30 minutos</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <h3>Mapa</h3>
+                        <div class="setting-item">
+                            <label>Tipo de mapa:</label>
+                            <select id="mapType">
+                                <option value="street" selected>Callejero</option>
+                                <option value="satellite">Satélite</option>
+                                <option value="hybrid">Híbrido</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <h3>Datos</h3>
+                        <div class="setting-item">
+                            <button id="exportDataBtn" class="btn-secondary">
+                                <i class="fas fa-download"></i> Exportar Datos
+                            </button>
+                            <button id="clearDataBtn" class="btn-danger">
+                                <i class="fas fa-trash"></i> Limpiar Datos Locales
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Modal para nueva visita -->
+        <div id="visitModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Programar Nueva Visita</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="visitForm">
+                        <div class="form-group">
+                            <label for="visitAlert">Seleccionar Alerta:</label>
+                            <select id="visitAlert" required>
+                                <option value="">-- Seleccionar alerta --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="visitDate">Fecha y Hora:</label>
+                            <input type="datetime-local" id="visitDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="visitNotes">Observaciones:</label>
+                            <textarea id="visitNotes" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="visitPriority">Prioridad:</label>
+                            <select id="visitPriority">
+                                <option value="low">Baja</option>
+                                <option value="medium" selected>Media</option>
+                                <option value="high">Alta</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">Guardar Visita</button>
+                            <button type="button" class="btn-secondary close-modal">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de detalles de alerta -->
+        <div id="alertModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="alertModalTitle">Detalles de Alerta</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body" id="alertModalBody">
+                    <!-- Los detalles se cargarán aquí dinámicamente -->
+                </div>
+                <div class="modal-footer">
+                    <button id="markVisitedBtn" class="btn-primary">Marcar como Visitado</button>
+                    <button id="addToAgendaBtn" class="btn-secondary">Agendar Visita</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notificación flotante -->
+        <div id="notificationToast" class="notification-toast">
+            <div class="toast-header">
+                <i class="fas fa-bell"></i>
+                <h4>Nueva Alerta</h4>
+                <button class="toast-close">&times;</button>
+            </div>
+            <div class="toast-body">
+                <p id="toastMessage"></p>
+            </div>
+        </div>
+
+        <!-- Reproductor de sonido para notificaciones -->
+        <audio id="notificationSound" preload="auto">
+            <source src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" type="audio/mpeg">
+        </audio>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
